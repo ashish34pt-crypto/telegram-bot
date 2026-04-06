@@ -1,118 +1,105 @@
+import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
 
-# 🔑 ADD YOUR BOT TOKEN HERE
-TOKEN = "8386231124:AAHvhaVg-Z1L24pJ2CJNRxB3674gjPD_nHU"
-
-
-
-# 👑 YOUR TELEGRAM USER ID
+TOKEN = os.getenv("8386231124:AAHvhaVg-Z1L24pJ2CJNRxB3674gjPD_nHU")  # Railway ENV me add karna
 ADMIN_ID = 6556890316
 
-# 🚀 START COMMAND (INLINE MENU)
+# 🟢 START COMMAND
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.message.from_user.id
+
+    # 👉 USER SAVE (offer ke liye)
+    context.application.user_data[user_id] = True
+
     keyboard = [
-        [InlineKeyboardButton("💳 Buy Now", url="https://rzp.io/rzp/Oa0lD2k")],
-        [InlineKeyboardButton("📸 Demo", callback_data="demo")],
-        [InlineKeyboardButton("📞 Support", callback_data="support")],
+        [InlineKeyboardButton("💎 1 Month - $3.99", url="https://rzp.io/rzp/Oa0lD2k")],
+        [InlineKeyboardButton("🔥 2 Months - $6.99", url="https://rzp.io/rzp/Oa0lD2k")],
+        [InlineKeyboardButton("👑 3 Months - $12.99", url="https://rzp.io/rzp/Oa0lD2k")],
+        [InlineKeyboardButton("🎁 Offer: 3 Months 30% OFF ($10.99)", url="https://rzp.io/rzp/Oa0lD2k")],
         [InlineKeyboardButton("✅ I Paid", callback_data="paid")]
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
-    await update.message.reply_text(
-        "🔥 Welcome!\n\nPlease choose an option:",
+    await update.message.reply_photo(
+        photo="https://i.ibb.co/LDTNZfnw",
+        caption="🔥 Choose your plan & unlock premium content 😏",
         reply_markup=reply_markup
     )
 
-# 🔘 BUTTON HANDLER
+# 🟢 BUTTON CLICK
 async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
     user_id = query.from_user.id
-    username = query.from_user.username
 
-    # 📸 DEMO
-    if query.data == "demo":
-        await query.message.reply_photo(
-            photo="https://ibb.co/LDTNZfnw",
-            caption="📸 This is a demo preview"
-        )
-
-    # 📞 SUPPORT
-    elif query.data == "support":
-        await query.message.reply_text(
-            "📞 Contact support: @riyoraxsupport"
-        )
-
-    # 💰 I PAID
-    elif query.data == "paid":
-        await query.message.reply_text(
-            f"⏳ Payment is being reviewed...\nYour ID: {user_id}\n\nSend this ID to admin"
-        )
-
-        # 🔥 NOTIFY ADMIN
-        await context.bot.send_message(
-            chat_id=ADMIN_ID,
-            text=f"🔥 New Payment Request\n\nUser ID: {user_id}\nUsername: @{username}"
-        )
-
-# 💳 BUY COMMAND (LEFT MENU)
-async def buy(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "💳 Payment link:\nhttps://rzp.io/rzp/Oa0lD2k"
+    # 👉 ADMIN KO NOTIFICATION
+    await context.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=f"💰 New Payment Request!\nUser ID: {user_id}"
     )
 
-# 📸 DEMO COMMAND (LEFT MENU)
-async def demo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_photo(
-        photo="https://ibb.co/LDTNZfnw",
-        caption="📸 Demo preview"
+    await query.message.reply_text(
+        f"⏳ Payment checking...\nYour ID: {user_id}"
     )
 
-# 📞 SUPPORT COMMAND (LEFT MENU)
-async def support(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "📞 Contact support: @riyoraxsupport"
-    )
-
-# 👑 ADMIN COMMAND (ACCESS)
+# 🟢 ADMIN ACCESS COMMAND
 async def access(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.from_user.id == ADMIN_ID:
 
         if len(context.args) == 0:
-            await update.message.reply_text("Please provide a user ID")
+            await update.message.reply_text("❌ Use: /access USER_ID")
             return
 
         user_id = int(context.args[0])
 
-        # ✅ SEND ACCESS MESSAGE
         await context.bot.send_message(
             chat_id=user_id,
-            text="🔥 Payment successful!\n\n👉 Join private access:\nhttps://t.me/+1R4StxEOBEQ5YmNl"
+            text="🔥 Payment successful! Welcome to premium 😏"
         )
 
-        # 📸 SEND PREMIUM PHOTO
+        # 📸 PHOTO
         await context.bot.send_photo(
             chat_id=user_id,
-            photo="https://ibb.co/LDTNZfnw"
+            photo="https://i.ibb.co/LDTNZfnw"
         )
 
-# ⚙️ BOT START
+        # 🔗 PRIVATE CHANNEL
+        await context.bot.send_message(
+            chat_id=user_id,
+            text="🔒 Join Private Channel:\nhttps://t.me/+1R4StxEOBEQ5YmNl"
+        )
+
+# 🟢 OFFER BROADCAST
+async def offer(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.from_user.id == ADMIN_ID:
+
+        offer_text = """🎁 LIMITED OFFER!
+
+🔥 3 Months Plan 30% OFF
+Now Only $10.99 😍
+
+💳 Buy Now:
+https://rzp.io/rzp/Oa0lD2k
+"""
+
+        for user_id in context.application.user_data:
+            try:
+                await context.bot.send_message(chat_id=user_id, text=offer_text)
+            except:
+                pass
+
+        await update.message.reply_text("✅ Offer sent to all users!")
+
+# 🟢 MAIN APP
 app = ApplicationBuilder().token(TOKEN).build()
 
-# COMMAND HANDLERS
 app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("buy", buy))
-app.add_handler(CommandHandler("demo", demo))
-app.add_handler(CommandHandler("support", support))
-
-# BUTTON HANDLER
 app.add_handler(CallbackQueryHandler(button))
-
-# ADMIN COMMAND
 app.add_handler(CommandHandler("access", access))
+app.add_handler(CommandHandler("offer", offer))
 
 print("Bot is running...")
 app.run_polling()
