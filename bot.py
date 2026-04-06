@@ -2,7 +2,7 @@ import os
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
 
-TOKEN = os.getenv("8386231124:AAEgLiSpQlfAlPUCIwRfLSUBEKTQHCNQBAM")  # Railway ENV me add karna
+TOKEN = os.getenv("8386231124:AAHvhaVg-Z1L24pJ2CJNRxB3674gjPD_nHU")  # Railway ENV me add karna
 ADMIN_ID = 6556890316
 
 # 🟢 START COMMAND
